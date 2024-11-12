@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  firstName        String?
+  lastName         String?
+  birthDate        DateTime?
+  email            String    @unique
+  hashPassword     String?
+  hashRefreshToken String?
+  avatarUrl        String?
+  role             Role      @default(USER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reviews  Review[]
+  purchase Purchase[]
+
+  @@index([email])
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Vinyl {
+  id           String  @id @default(uuid())
+  name         String
+  authorName   String
+  description  String
+  price        Decimal
+  coverUrl     String?
+  averageScore Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reviews  Review[]
+  Purchase Purchase[]
+
+  @@index([name])
+  @@index([authorName])
+  @@map("vinyls")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String?
+  vinylId   String
+  score     Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  user  User? @relation(fields: [userId], references: [id])
+  vinyl Vinyl @relation(fields: [vinylId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([vinylId])
+  @@map("reviews")
+}
+
+model Purchase {
+  id        String   @id @default(uuid())
+  userId    String
+  vinylId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vinyl Vinyl @relation(fields: [vinylId], references: [id])
+
+  @@index([userId])
+  @@index([vinylId])
+  @@map("purchases")
+}
+
+model SystemLog {
+  id         String   @id @default(uuid())
+  level      String
+  method     String
+  statusCode String   @map("status_code")
+  entity     String
+  message    String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("system_logs")
+}
