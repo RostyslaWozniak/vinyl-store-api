@@ -50,7 +50,7 @@ export class UsersService {
       where: { email },
     });
     if (!user) {
-      throw new NotFoundException('User not found');
+      return null;
     }
     return {
       id: user.id,
